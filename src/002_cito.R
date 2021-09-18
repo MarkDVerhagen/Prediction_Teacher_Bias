@@ -11,7 +11,7 @@ library(data.table)
 ## Further uniform test scores using the available sample
 ## Generate mean scores for Maths, Reading and Language
 
-## Read data
+## -- Read data
 source("analysis/functions/cito_clean_functions.r")
 
 pupils <- readRDS("data/edit/pupils.rds")
@@ -19,24 +19,14 @@ pupils <- readRDS("data/edit/pupils.rds")
 cito_raw <- readRDS("data/raw/cito.rds") %>%
   select(-X) %>%
   rename(
-    p_id = pupil_id,
-    c_id = class_id
+    p_id = pupil_id
   ) %>%
   mutate(
     p_id = as.character(p_id),
-    c_id = as.character(c_id),
     date_taken = as.Date(date_taken)
   )
 
-# Generate cross walk from class to school
-c_s_cw <- pupils[, c("c_id", "s_id")] %>%
-  filter(!duplicated(c_id, s_id)) %>%
-  filter(!duplicated(c_id))
-
-cito <- cito_raw %>%
-  left_join(c_s_cw)
-
-## Subset to only include relevant test scores and check diagnostics
+## --Subset to only include relevant test scores and check diagnostics
 
 cito_p <- cito %>%
   filter(p_id %in% pupils$p_id)
@@ -56,13 +46,13 @@ ids <- grades_missing_report(pupils, cito_sub_final,
 
 cito_full <- cito_sub_final
 
-## Re-uniform scores
+## --Re-uniform scores
 cito_full <- cito_full %>%
   group_by(cito_subject, class_year, semester) %>%
   mutate(percentile_score = tiger::to.uniform(percentile_score))
 
 
-## Mean scores together when they are on the same date and same subject
+## -- Mean scores together when they are on the same date and same subject
 cito_full_dt <- data.table(cito_full)
 
 cito_3tests <- cito_full_dt[,
@@ -76,7 +66,7 @@ cito_3tests <- cito_full_dt[,
 
 saveRDS(cito_3tests, "data/edit/cito_3tests_clean.rds")
 
-## Aggregate to yearly scores
+## -- Aggregate to yearly scores
 cito_3tests_year <- cito_3tests %>%
   group_by(p_id, class_year, national_subject) %>%
   summarise(pscore = mean(percentile_score, na.rm = T)) %>%
