@@ -48,7 +48,8 @@ df <- data %>%
     pupil_low_ses = ifelse((weight_03 == 1) | (weight_12 == 1), 1, 0)
   ) %>%
   dplyr::select(-y, -cohort, -weight_03, -weight_12) %>%
-  filter(rowSums(is.na(data %>% dplyr::select(all_of(tests)))) == 0) %>%
+  filter(rowSums(is.na(data %>%
+    dplyr::select(all_of(tests)))) == 0) %>%
   mutate(
     DEN = gsub("CON|PC|RE|RK", "Christian", DEN),
     DEN = gsub("OB", "Public", DEN),
