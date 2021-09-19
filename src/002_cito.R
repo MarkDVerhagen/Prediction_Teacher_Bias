@@ -46,7 +46,7 @@ ids <- grades_missing_report(pupils, cito_sub_final,
 
 cito_full <- cito_sub_final
 
-## --Re-uniform scores
+## -- Re-uniform scores
 cito_full <- cito_full %>%
   group_by(cito_subject, class_year, semester) %>%
   mutate(percentile_score = tiger::to.uniform(percentile_score))
