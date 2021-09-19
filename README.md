@@ -12,40 +12,40 @@ All predictive as well as in-sample analysis is visualised throughout the paper 
 
 Although the `data` folder is empty, the local structure is maintained to illustrate how the various scripts are used to analyse the data. Note that the final output (various plots and tables) are included in the repository as well, specifically in the `tex` folder.
 
-The repository follows the following overall structure:
+<!-- The repository follows the following overall structure:
 
-├── data  
-│   ├── raw  
-│   ├── edit  
-│   ├── results  
-│   ├── simulations  
-├── src  
-│   ├── 001_pupils.R  
-│   ├── 002_cito.R  
-│   ├── 003_schools.R  
-│   ├── 01_merge.R  
-│   ├── 02_gen_dep_var.R  
-│   ├── 03_analysis.R  
-│   ├── 03_tables.R  
-│   ├── 03_desc_plots.R  
-│   ├── 04_simulation_a.R  
-│   ├── 04_simulation_b.R  
-│   ├── 04_simulation_c.R  
-│   ├── 04_simulation_d.R  
-│   ├── 04_simulation_e.R  
-│   ├── 04_simulation_f.R  
-│   ├── 05_res_plots.R  
-├── tex  
-│   ├── plots  
-│   │   ├── fig_desc_0.pdf  
-│   │   ├── fig_desc_1.pdf  
-│   │   ├── fig_desc_2.pdf  
-│   │   ├── fig_res_1.pdf  
-│   │   ├── fig_res_2.pdf  
-│   │   ├── fig_res_3.pdf  
-│   │   ├── fig_res_4.pdf  
-│   │   ├── fig_res_5.pdf  
-│   ├── tables  
-│   │   ├── table_desc_1.tex  
-│   │   ├── table_res_1.tex  
-│   │   ├── table_res_2.tex
+├── data
+│ ├── raw
+│ ├── edit
+│ ├── results
+│ ├── simulations
+├── src
+│ ├── 001_pupils.R
+│ ├── 002_cito.R
+│ ├── 003_schools.R
+│ ├── 01_merge.R
+│ ├── 02_gen_dep_var.R
+│ ├── 03_analysis.R
+│ ├── 03_tables.R
+│ ├── 03_desc_plots.R
+│ ├── 04_simulation_a.R
+│ ├── 04_simulation_b.R
+│ ├── 04_simulation_c.R
+│ ├── 04_simulation_d.R
+│ ├── 04_simulation_e.R
+│ ├── 04_simulation_f.R
+│ ├── 05_res_plots.R
+├── tex
+│ ├── plots
+│ │ ├── fig_desc_0.pdf
+│ │ ├── fig_desc_1.pdf
+│ │ ├── fig_desc_2.pdf
+│ │ ├── fig_res_1.pdf
+│ │ ├── fig_res_2.pdf
+│ │ ├── fig_res_3.pdf
+│ │ ├── fig_res_4.pdf
+│ │ ├── fig_res_5.pdf
+│ ├── tables
+│ │ ├── table_desc_1.tex
+│ │ ├── table_res_1.tex
+│ │ ├── table_res_2.tex -->
