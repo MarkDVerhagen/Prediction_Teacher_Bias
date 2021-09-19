@@ -37,15 +37,15 @@ The repository follows the following overall structure:
 │ ├── 05_res_plots.R  
 ├── tex  
 │ ├── plots  
-│ | ├── fig_desc_0.pdf  
-│ | ├── fig_desc_1.pdf  
-│ | ├── fig_desc_2.pdf  
-│ | ├── fig_res_1.pdf  
-│ | ├── fig_res_2.pdf  
-│ | ├── fig_res_3.pdf  
-│ | ├── fig_res_4.pdf  
-│ | ├── fig_res_5.pdf  
+│ │ ├── fig_desc_0.pdf  
+│ │ ├── fig_desc_1.pdf  
+│ │ ├── fig_desc_2.pdf  
+│ │ ├── fig_res_1.pdf  
+│ │ ├── fig_res_2.pdf  
+│ │ ├── fig_res_3.pdf  
+│ │ ├── fig_res_4.pdf  
+│ │ ├── fig_res_5.pdf  
 │ ├── tables  
-│ | ├── table_desc_1.tex  
-│ | ├── table_res_1.tex  
-│ | ├── table_res_2.tex
+│ │ ├── table_desc_1.tex  
+│ │ ├── table_res_1.tex  
+│ │ ├── table_res_2.tex
