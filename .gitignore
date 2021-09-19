@@ -1,2 +1,13 @@
 .vscode/
-.git-credential.*
+analysis/.vscode/
+src/.vscode/
+data/simulations/
+data/results/
+/src/.Rhistory
+/tex/.DS_Store
+/data/.DS_Store
+/data/simulations/.DS_Store
+/data/results/.DS_Store
+/data/edit/.DS_Store
+/data/raw/.DS_Store
+.DS_Store
