@@ -2,7 +2,7 @@
 ## output: 1_250_mop_cross_within.rds
 
 packages <- c(
-  "tidyverse", "caret", "stargazer", "lme4", "leaps", "reshape2",
+  "tidyverse", "caret", "stargazer", "lme4", "reshape2",
   "MASS", "ordinal", "doParallel"
 )
 
