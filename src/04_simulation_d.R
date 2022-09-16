@@ -3,7 +3,7 @@
 ## output: 1_250_school.rds
 
 packages <- c(
-  "tidyverse", "caret", "lme4", "leaps", "reshape2",
+  "tidyverse", "caret", "lme4", "reshape2",
   "MASS", "ordinal", "doParallel"
 )
 
