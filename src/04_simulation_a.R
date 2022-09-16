@@ -2,7 +2,7 @@
 ## Output: 1_250_lm_lme_op_mop_perf.rds
 
 packages <- c(
-  "tidyverse", "caret", "lme4", "leaps",
+  "tidyverse", "caret", "lme4",
   "reshape2", "MASS", "ordinal", "doParallel"
 )
 
