@@ -1,8 +1,8 @@
 ## Simulation for Linear outcome and Ordered outcome models (Figure 2)
 
-packages <- c("tidyverse", "caret", "stargazer", "lme4", "leaps", "gtools",
-              "reshape2", "patchwork", "hrbrthemes", "cowplot", "showtext",
-              "ggthemes", "MASS", "ordinal", "doParallel", "randomForest")
+packages <- c("tidyverse", "caret", "lme4",
+              "reshape2", "patchwork", "cowplot",
+              "MASS", "ordinal", "doParallel", "randomForest")
 
 lapply(packages, require, character.only = TRUE)
 
