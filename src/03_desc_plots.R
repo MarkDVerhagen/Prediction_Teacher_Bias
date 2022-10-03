@@ -12,7 +12,7 @@ showtext::showtext_auto()
 ## -- load functions and saved coefficients and data
 source("analysis/functions/analysis_functions.R")
 source("analysis/functions/plot_functions.R")
-source("repo/src/styles.R")
+source("src/styles.R")
 load("analysis/coefs_perfs.rda")
 load("data/results/model_results.rda")
 data <- readRDS("data/edit/analysis.rds")
