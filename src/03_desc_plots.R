@@ -12,32 +12,10 @@ showtext::showtext_auto()
 ## -- load functions and saved coefficients and data
 source("analysis/functions/analysis_functions.R")
 source("analysis/functions/plot_functions.R")
+source("repo/src/styles.R")
 load("analysis/coefs_perfs.rda")
 load("data/results/model_results.rda")
 data <- readRDS("data/edit/analysis.rds")
-
-## -- generate baseline theme
-theme_custom <- theme(
-  panel.grid.major.x =
-    element_line(
-      size = 0.5, linetype = "dotted",
-      colour = "lightgrey"
-    ),
-  panel.grid.minor.x = element_line(
-    size = 0.25, linetype = "dotted",
-    colour = "lightgrey"
-  ),
-  strip.placement = "outside",
-  strip.text.y = element_text(face = "bold", hjust = 0.5, vjust = 0.5),
-  strip.background = element_rect(fill = NA, color = "black", size = 1.5),
-  panel.spacing.x = unit(0.08, "lines"),
-  panel.spacing.y = unit(0.1, "lines"),
-  panel.border = element_rect(color = "lightgrey", fill = NA, size = 0.5),
-  legend.position = "top",
-  text = element_text(size = 16),
-  axis.text.x = element_text(size = 16),
-  axis.text.y = element_text(size = 16)
-)
 
 ## FIGURE 1: CHANCE INEQUALITY ACROSS TIME
 ## Source: Onderwijsinspectie
@@ -59,17 +37,17 @@ ggplot(melt_data, aes(
 )) +
   geom_point() +
   geom_line(size = 1) +
-  scale_color_aaas(
-    name = "Parent's\neducation",
+  scale_color_manual(
+      name = "Parent's\neducation",
     labels = c(
       "PhD", "Master's", "Bachelor's",
       "Vocational: Level 3", "Vocational: Level 2",
       "Vocational: Level 1", "Primary Education"
-    )
-  ) +
+    ),
+  values = MetBrewer::met.brewer("Hokusai1")) +
   labs(x = "Year", y = "Difference (1 = full track)") +
   cowplot::theme_cowplot() +
-  theme_custom +
+  custom_theme(text_size = 16, ver = T) +
   geom_hline(yintercept = 0, linetype = "dashed")
 
 # save
@@ -82,7 +60,7 @@ ggsave(
 data <- readRDS("data/edit/analysis.rds")
 
 scores_y <- data %>%
-  select(mean_Reading, mean_Maths, mean_Language, y)
+  dplyr::select(mean_Reading, mean_Maths, mean_Language, y)
 
 scores_y_melt <- reshape2::melt(id.vars = "y", scores_y)
 
@@ -92,15 +70,16 @@ set.seed(1)
 samp <- scores_y_melt %>% sample_frac(0.025)
 
 loess_fit <- ggplot(samp, aes(
-  y = value * 100, x = as.factor(y),
-  color = variable
+  y = value * 100, x = as.factor(y)
 )) +
-  geom_boxplot(outlier.shape = NA, width = 0.6) +
-  geom_jitter(alpha = 0.1) +
-  facet_grid(rows = vars(variable)) +
-  ggsci::scale_color_aaas(name = "Area") +
+geom_jitter(aes(color = variable), shape = 16, position = position_jitter(0.2), alpha = 0.7, size =2) +
+  geom_violin(aes(fill = variable), outlier.shape = NA, width = 0.6, alpha = 0.7, color = "black") +
+    geom_boxplot(outlier.shape = NA, width = 0.1) +
+    facet_grid(rows = vars(variable)) +
+  scale_fill_manual(values = MetBrewer::met.brewer("Juarez"), name = "Test type") +
+  scale_color_manual(values = MetBrewer::met.brewer("Juarez"), name = "Test type") +
   theme_cowplot() +
-  theme_custom +
+  custom_theme(text_size = 16, hor = T) +
   geom_smooth(se = F, width = 0.5) +
   guides(color = F) +
   theme(strip.background = element_blank(), strip.text.y = element_blank()) +
@@ -115,6 +94,18 @@ loess_fit <- ggplot(samp, aes(
     axis.line.y = element_blank(), text = element_text(size = 24)
   )
 
+scores <- ggplot(scores_y_melt, aes(x = value, fill = variable)) +
+  geom_density(alpha = 0.7) +
+  facet_grid(variable ~ .) +
+  coord_flip() +
+  cowplot::theme_cowplot() +
+  theme(strip.background = element_blank(), strip.text.y = element_blank()) +
+  custom_theme(text_size = 24, hor = T) +
+  scale_x_continuous(labels = c("0", "25", "50", "75", "100"), name = "Average ability score") +
+  scale_fill_manual(values = MetBrewer::met.brewer("Juarez"), name = "Test type") +
+  ylab("Density")
+  
+
 (scores + ggtitle("")) + (loess_fit + ggtitle("") +
   theme(legend.position = "none")) +
   plot_layout(ncol = 2, guides = "collect") +
@@ -123,14 +114,14 @@ loess_fit <- ggplot(samp, aes(
 ggsave("tex/plots/fig_desc_1.pdf", last_plot(), width = 14, height = 10)
 
 
-# Figure D.2: SAMPLE REPRENSTATIVITY --------------------------------------
+# Figure D.2: SAMPLE REPRESENTATIVITY --------------------------------------
 
 # SAMPLE REPRESENTATION --------------------------------------------------------
 # below script is generated internally by Data Provider to evaluate in-sample
 # school level information with population CBS data from 2018-2019
 
 ## FIGURE D.1: SAMPLE REPRESENTATIVENESS
-data <- readRDS("data/edit/analysis.rds")
+data <- readRDS("data/edit/final_analysis.rds")
 school_size <- readRDS("data/raw/pupil4.rds") %>%
   rename(
     s_id = school_id,
@@ -147,12 +138,17 @@ school_size <- readRDS("data/raw/pupil4.rds") %>%
 
 n <- dim(school_size)[1]
 
-schools <- readRDS("data/edit/schools.rds") %>%
+schools_raw <- readRDS("data/edit/schools.rds") %>%
   mutate(
     DEN = gsub("CON|PC|RE|RK", "Christian", DEN),
     DEN = gsub("OB", "Public", DEN),
     DEN = gsub("AB|OT", "Other", DEN)
   )
+
+schools <- df %>%
+  filter(!duplicated(s_id))
+schools <- schools %>%
+  left_join(schools_raw[, c("s_id", "school_weight")])
 
 school_df <- schools %>%
   filter(!duplicated(s_id)) %>%
@@ -163,29 +159,29 @@ school_df <- schools %>%
       ifelse(n < 501, "201-500", "500+")
     )
   )) %>%
-  select(-n)
+  dplyr::select(-n)
 
 size <- school_df %>%
   group_by(size) %>%
   tally() %>%
   mutate(prop = n / dim(school_df)[1]) %>%
-  select(-n)
+  dplyr::select(-n)
 
 size$NL <- c(0.17, 0.33, 0.45, 0.05) # based on CBS
-names(size) <- c("Var", "Data", "NL")
+names(size) <- c("Var", "Data", "Pop")
 
 ## SCHOOL WEIGHT
 sw <- school_df %>%
   count(school_weight) %>%
   mutate(pop = n / dim(school_df)[1]) %>%
-  select(-n)
+  dplyr::select(-n)
 
 cbs_sw <- read.csv2("data/raw/CBS_school_weights.csv")
 
 sw_df <- rbind(
   data.frame(
     sample = "Population",
-    sw = cbs_sw$ï..pop_school_weight
+    sw = cbs_sw$pop_school_weight
   ),
   data.frame(
     sample = "Sample",
@@ -200,19 +196,19 @@ denom <- school_df %>%
   )) %>%
   count(DEN) %>%
   mutate(prop = n / dim(school_df)[1]) %>%
-  select(-n)
+  dplyr::select(-n)
 
 denom$NL <- c(0.318 + 0.296, 0.081, 0.305)
-names(denom) <- c("Var", "Data", "NL")
+names(denom) <- c("Var", "Data", "Pop")
 
 ste <- school_df %>%
-  mutate(ste_mvs = abs(ste_mvs - 6)) %>%
+  mutate(ste_mvs = abs(as.numeric(ste_mvs) - 6)) %>%
   count(ste_mvs) %>%
-  mutate(pop = n / 951) %>%
-  select(-n)
+  mutate(pop = n / nrow(school_df)) %>%
+  dplyr::select(-n)
 
 ste$NL <- c(0.077, 0.214, 0.168, 0.309, 0.233)
-names(ste) <- c("Var", "Data", "NL")
+names(ste) <- c("Var", "Data", "Pop")
 
 comparison <- rbind(size, denom, ste)
 comparison$Type <- c(
@@ -236,22 +232,19 @@ order_c <- c(
 )
 
 outcome_dist <- data %>%
-  filter(cohort == 2019) %>%
-  group_by(y) %>%
+  filter(cohort_2019 == 1) %>%
+  group_by(y_cat) %>%
   tally() %>%
   mutate(sample = n / sum(n)) %>%
-  select(-n)
+  dplyr::select(-n)
 
 outcome_dist$population <- c(0.239, 0.271, 0.169, 0.102, 0.202)
 
 outcome_dist_melt <- outcome_dist %>%
-  reshape2::melt(id.vars = "y")
-own_theme <- cowplot::theme_cowplot(font_size = 18) +
-
-  ggplot2::theme(legend.position = "top")
+  reshape2::melt(id.vars = "y_cat")
 
 font_size <- 5
-text_size <- 28
+# text_size <- 28
 plot_size <- ggplot(comp_melt, aes(
   x = value,
   y = factor(Var, levels = order_c), fill = variable
@@ -276,10 +269,10 @@ plot_size <- ggplot(comp_melt, aes(
     "201-500\npupils", "500+\npupils"
   )) +
   labs(x = "Sample proportion", y = "", title = "School size") +
-  own_theme +
   background_grid(major = "y", minor = "y") +
   scale_x_continuous(labels = scales::percent_format(), limits = c(0, 0.7)) +
-  theme(text = element_text(size = text_size))
+  cowplot::theme_cowplot() +
+  custom_theme(hor = T, text_size = 16)
 
 plot_denom <- ggplot(comp_melt, aes(
   x = value,
@@ -303,10 +296,10 @@ plot_denom <- ggplot(comp_melt, aes(
   scale_fill_aaas(name = "School Denomination") +
   scale_y_discrete(labels = c("Public", "Christian", "Other")) +
   labs(y = "", x = "", title = "School denomination") +
-  own_theme +
   background_grid(major = "y", minor = "y") +
   scale_x_continuous(labels = scales::percent_format(), limits = c(0, 0.7)) +
-  theme(text = element_text(size = text_size))
+  cowplot::theme_cowplot() +
+  custom_theme(hor = T, text_size = 16)
 
 plot_urb <- ggplot(comp_melt, aes(
   x = value,
@@ -332,10 +325,9 @@ plot_urb <- ggplot(comp_melt, aes(
     labels = c("Very\nlow", "Low", "Medium", "High", "Very\nhigh")
   ) +
   labs(y = "", x = "Sample proportion", title = "School urbanity") +
-  own_theme +
-  background_grid(major = "y", minor = "y") +
   scale_x_continuous(labels = scales::percent_format(), limits = c(0, 0.7)) +
-  theme(text = element_text(size = text_size))
+  cowplot::theme_cowplot() +
+  custom_theme(hor = T, text_size = 16)
 
 plot_weight <- ggplot(
   comp_melt,
@@ -359,28 +351,28 @@ plot_weight <- ggplot(
   scale_fill_aaas(name = "Pupil Weight") +
   scale_y_discrete(labels = c("Low", "Lowest")) +
   labs(y = "", x = "", title = "Parental education") +
-  own_theme +
   background_grid(major = "y", minor = "y") +
   scale_x_continuous(labels = scales::percent_format(), limits = c(0, 0.7)) +
-  theme(text = element_text(size = text_size))
+  cowplot::theme_cowplot() +
+  custom_theme(hor = T, text_size = 16)
 
 plot_sw <- ggplot(data = sw_df, aes(x = sw, color = sample, fill = sample)) +
   geom_density(size = 1) +
   scale_color_manual(values = pal_aaas()(2)[2:1], name = "") +
   scale_fill_manual(values = pal_aaas(alpha = 0.3)(2)[2:1], name = "") +
   labs(
-    x = "School disadvantage (higher = more disadvantaged)",
+    x = "School disadvantage\n(higher = more disadvantaged)",
     y = "Density",
     title = "School disadvantage"
   ) +
-  own_theme +
   background_grid(major = "y", minor = "y") +
   theme(axis.title.x = element_text(size = 13)) +
   scale_y_continuous(labels = scales::percent_format(), limits = c(0, 0.13)) +
-  theme(text = element_text(size = text_size))
+  cowplot::theme_cowplot() +
+  custom_theme(hor = T, text_size = 16)
 
 plot_y <- ggplot(
-  data = outcome_dist_melt,
+  data = outcome_dist_melt %>% mutate(y = as.numeric(y_cat)),
   aes(y = value, x = y, fill = variable)
 ) +
   geom_bar(stat = "identity", position = "dodge", color = "black") +
@@ -393,22 +385,22 @@ plot_y <- ggplot(
   ) +
   scale_fill_aaas(name = "Track outcome") +
   labs(
-    y = "Sample proportion", x = "Assigned Track Level",
+    y = "Sample proportion", x = "",
     title = "Assigned Track Level"
   ) +
-  own_theme +
   background_grid(major = "y", minor = "y") +
   scale_x_continuous(
     labels = c("I", "II", "III", "IV", "V"),
     breaks = c(1, 2, 3, 4, 5)
   ) +
   scale_y_continuous(labels = scales::percent_format(), limits = c(0, 0.6)) +
-  theme(text = element_text(size = text_size))
+  cowplot::theme_cowplot() +
+  custom_theme(hor = T, text_size = 16)
 
 theme_grid_rep <- theme(
   legend.position = "none",
-  axis.text = element_text(size = 13),
-  title = element_text(size = 11)
+  axis.text = element_text(size = 16),
+  title = element_text(size = 20)
 )
 plots <- plot_grid(plot_size + theme_grid_rep,
   plot_denom + theme_grid_rep,
@@ -429,7 +421,7 @@ plot_grid(legend,
 )
 
 school_sample <- last_plot()
-ggsave("tex/plots/fig_desc_2.pdf",
-  width = 12, height = 8,
+ggsave("./tex/figs/fig_desc_2.pdf",
+  width = 12, height = 12,
   school_sample
 )

@@ -1,3 +1,25 @@
+theme_custom <- theme(
+  panel.grid.major.x =
+    element_line(
+      size = 0.5, linetype = "dotted",
+      colour = "lightgrey"
+    ),
+  panel.grid.minor.x = element_line(
+    size = 0.25, linetype = "dotted",
+    colour = "lightgrey"
+  ),
+  strip.placement = "outside",
+  strip.text.y = element_text(face = "bold", hjust = 0.5, vjust = 0.5),
+  strip.background = element_rect(fill = NA, color = "black", size = 1.5),
+  panel.spacing.x = unit(0.08, "lines"),
+  panel.spacing.y = unit(0.1, "lines"),
+  panel.border = element_rect(color = "lightgrey", fill = NA, size = 0.5),
+  legend.position = "top",
+  text = element_text(size = 16),
+  axis.text.x = element_text(size = 16),
+  axis.text.y = element_text(size = 16)
+)
+
 delist_cross <- function(df, col_names) {
   list_df <- c()
   first <- T
@@ -18,7 +40,7 @@ delist_cross <- function(df, col_names) {
 }
 
 cross_plot <- function(df1, df2, first = T, color1 = "#EE0000FF",
-                       color2 = "#3B4992FF") {
+                       color2 = "#3B4992FF", size_text = 5) {
   df_own <- df1
   df_other <- df2
   if (mean(df_own %*% c(1, 2, 3, 4, 5)) > mean(df_other %*% c(1, 2, 3, 4, 5))) {
@@ -46,7 +68,7 @@ cross_plot <- function(df1, df2, first = T, color1 = "#EE0000FF",
       width = 0.2, position = position_dodge(width = 1)
     ) +
     geom_text(aes(label = paste0(round(mean, 3) * 100, "%")),
-      position = position_dodge(width = 1), hjust = -.4, size = 4
+      position = position_dodge(width = 1), hjust = -.4, size = size_text
     ) +
     coord_flip() +
     scale_fill_aaas(name = "Prediction model") +
@@ -57,7 +79,7 @@ cross_plot <- function(df1, df2, first = T, color1 = "#EE0000FF",
     ) +
     annotate("text",
       x = mean(df_own %*% c(1, 2, 3, 4, 5)) + 0.2 * offset,
-      y = 0.6, color = color1, size = 4,
+      y = 0.6, color = color1, size = size_text,
       label = as.character(round(mean(df_own %*% c(1, 2, 3, 4, 5)), 3))
     ) +
     geom_vline(
@@ -66,14 +88,14 @@ cross_plot <- function(df1, df2, first = T, color1 = "#EE0000FF",
     ) +
     annotate("text",
       x = mean(df_other %*% c(1, 2, 3, 4, 5)) - 0.2 * offset,
-      y = 0.6, color = color2, size = 4,
+      y = 0.6, color = color2, size = size_text,
       label = as.character(round(mean(df_other %*% c(1, 2, 3, 4, 5)), 3))
     ) +
     theme(
       legend.position = "bottom",
-      text = element_text(size = 14),
-      axis.text.x = element_text(size = 14),
-      axis.text.y = element_text(size = 14)
+      text = element_text(size = 16),
+      axis.text.x = element_text(size = 16),
+      axis.text.y = element_text(size = 16)
     ) +
     ylim(c(0, 0.65)) +
     xlab("Predicted track level") +

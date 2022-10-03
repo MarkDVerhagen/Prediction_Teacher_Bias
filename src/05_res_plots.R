@@ -7,19 +7,18 @@ packages <- c(
 )
 lapply(packages, require, character.only = TRUE)
 
-showtext::showtext_auto()
-
 ## -- load functions and saved coefficients and data
-source("analysis/functions/analysis_functions.R")
-source("analysis/functions/plot_functions.R")
+source("repo/src/functions/analysis_functions.R")
+source("repo/src/functions/plot_functions.R")
+source("repo/src/styles.R")
 load("analysis/coefs_perfs.rda")
 load("data/results/model_results.rda")
-data <- readRDS("data/edit/analysis.rds")
+data <- read_rds("data/edit/analysis.rds")
 
 ## FIGURE R.1: PERFORMANCE AND COEFFICIENTS OF BASIC MODELS
 
-results <- readRDS("1_250_lm_lme_op_mop_perf.rds")
-results_full <- readRDS("data/simulations/1_250_mop_full_perf.rds")
+results <- read_rds("repo/data/simulations/1_250_lm_lme_op_mop_perf.rds")
+results_full <- read_rds("repo/data/simulations/1_250_mop_full_perf.rds")
 results_df <- as.data.frame(cbind(results, results_full))
 
 perf <- delist_perf(results_df)
@@ -41,16 +40,7 @@ diff_df <- perf %>%
   )
 
 melted_lm <- reshape2::melt(perf %>%
-  select(lm_g, lm_gender, lm_ses, lme_g))
-
-means <- melted_lm %>%
-  group_by(variable) %>%
-  summarise(mean = mean(value))
-
-ggplot(melted_lm, aes(x = variable, y = value)) +
-  stat_summary(fun = "mean") +
-  coord_flip() +
-  cowplot::theme_cowplot()
+  dplyr::select(lm_g, lm_gender, lm_ses, lme_g))
 
 melted <- reshape2::melt(perf)
 
@@ -95,21 +85,22 @@ desc_df_full <- rbind(
 perf_plot <- ggplot(
   desc_df_full %>% filter(!grepl("Full ", type)) %>%
     filter(type == "No random effects"),
-  aes(x = reorder(spec, -mean), y = mean, fill = model, group = type)
+  aes(x = reorder(spec, -mean), y = mean, fill = model)
 ) +
-  geom_bar(stat = "identity", position = position_dodge2(), color = "black") +
+  geom_bar(stat = "identity", position = "dodge", color = "black") +
+  geom_errorbar(aes(ymin = ptile_5, ymax = ptile_95), position = position_dodge(0.9), width = 0.2) +  
   geom_text(aes(label = paste0(round(mean, 3) * 100, "%")),
     position = position_dodge2(width = 0.9),
-    hjust = -0.1, size = 5
+    hjust = -0.5, size = 5
   ) +
-  coord_flip(ylim = c(0.56, 0.7)) +
+  coord_flip(ylim = c(0.56, 0.71)) +
   cowplot::theme_cowplot() +
   scale_fill_aaas(name = "Model type") +
   geom_hline(yintercept = 0, linetype = 2, color = "darkgrey") +
-  theme_custom +
+  custom_theme(text_size = 16, ver = T) +
   xlab("") +
-  ylab("Out-of-sample predictive accuracy")
-
+  ylab("Out-of-sample predictive accuracy") +
+  scale_y_continuous(labels = scales::percent)
 
 mop_df <- as.data.frame(summary(mop_fit)$coefficients)
 lme_df <- as.data.frame(summary(re_fit)$coefficients)
@@ -137,13 +128,13 @@ mop_df_norm <- mop_df %>%
 
 full_models <- rbind(
   lme_df_norm %>%
-    select(var, Estimate, `Std. Error`) %>%
+    dplyr::select(var, Estimate, `Std. Error`) %>%
     mutate(
       spec = "Ability, pupil, school",
       model = "Interval"
     ),
   mop_df_norm %>%
-    select(var, Estimate, `Std. Error`) %>%
+    dplyr::select(var, Estimate, `Std. Error`) %>%
     mutate(
       spec = "Ability, pupil, school",
       model = "Categorical"
@@ -193,16 +184,16 @@ coef_plot <-
     size = 5
   ) +
   cowplot::theme_cowplot(font_size = 15) +
-  scale_color_aaas(name = "Model type") +
-  theme(legend.position = "top") +
-  theme_custom +
+    scale_color_aaas(name = "Model type") +
+    theme(legend.position = "top") +
+    custom_theme(text_size = 16, ver = T) +
   xlab("") +
-  ylab("Coefficient estimate normalised by coefficient for Maths score")
+  ylab("Coefficient estimate normalized by coefficient for Maths score")
 
 (coef_plot + ggtitle("Coefficient estimates") + perf_plot +
   ggtitle("OOS-predictive accuracy"))
 
-ggsave("tex/plots/fig_res_1.pdf", last_plot(), width = 13, height = 7)
+ggsave("./tex/figs/fig_res_1.pdf", last_plot(), width = 13, height = 7)
 
 ## FIGURE 2: PREDICTIVE VERSUS OBSERVED FOR LINEAR AND ORDERED OUTCOME
 
@@ -266,9 +257,10 @@ mop_plot <- mop_ap_plot + ggtitle("Interval, ability + school effects") +
     labels = c("I", "II", "III", "IV", "V")
   )
 
-(lm_plot + mop_plot)
+((lm_plot + custom_theme(text_size = 16, ver = F)) +
+ (mop_plot  + custom_theme(text_size = 16, ver = F)))
 
-ggsave("tex/plots/fig_res_2.pdf", last_plot(), width = 13, height = 7)
+ggsave("./tex/plots/fig_res_2.pdf", last_plot(), width = 14, height = 7)
 
 ## FIGURE 3 GROUP EFFECTS
 
@@ -290,12 +282,12 @@ ses_0 <- cross_plot(df_res$ses_00, df_res$ses_10) +
   scale_fill_aaas(
     name = "Prediction model",
     labels = c("Fit to low-SES", "Fit to high-SES")
-  )
+  ) + custom_theme(text_size = 16, ver = T)
 ses_1 <- cross_plot(df_res$ses_01, df_res$ses_11) +
   scale_fill_aaas(
     name = "Prediction model",
     labels = c("Fit to low-SES", "Fit to high-SES")
-  )
+  ) + custom_theme(text_size = 16, ver = T)
 
 sex_0 <- cross_plot(df_res$sex_00, df_res$sex_10,
   color1 = pal_aaas()(8)[8],
@@ -305,7 +297,7 @@ sex_0 <- cross_plot(df_res$sex_00, df_res$sex_10,
     values = pal_aaas()(8)[7:8],
     name = "Prediction model",
     labels = c("Fit to girls", "Fit to boys")
-  )
+  ) + custom_theme(text_size = 16, ver = T)
 
 sex_1 <- cross_plot(df_res$sex_01, df_res$sex_11,
   color1 = pal_aaas()(8)[8],
@@ -315,7 +307,7 @@ sex_1 <- cross_plot(df_res$sex_01, df_res$sex_11,
     values = pal_aaas()(8)[7:8],
     name = "Prediction model",
     labels = c("Fit to girls", "Fit to boys")
-  )
+  ) + custom_theme(text_size = 16, ver = T)
 
 ses_plot <- ((sex_0 + ggtitle("Boys") + ylab("") +
   sex_1 + ggtitle("Girls") + ylab("") + xlab("")) +
@@ -332,38 +324,39 @@ sex_plot <- ((ses_0 + ggtitle("High Parent. Educ.") +
     tag_levels = "I",
     theme = theme(legend.position = "bottom")
   ))
-(ses_plot / sex_plot)
+(ses_plot /
+ sex_plot)
 
-ggsave("tex/plots/fig_res_3.pdf", last_plot(), width = 13, height = 11)
+ggsave("./tex/plots/fig_res_3.pdf", last_plot(), width = 13, height = 11)
 
 ## FIGURE 4 SCHOOL VARIATION IN SES AND SEX & PREDICTIVE PERFORMANCE
 load("data/results/mop_s_results.rda")
 
-custom_theme <- theme(
-  panel.grid.major.x = element_line(
-    size = 0.5, linetype = "dotted",
-    colour = "lightgrey"
-  ),
-  panel.grid.minor.x = element_line(
-    size = 0.25, linetype = "dotted",
-    colour = "lightgrey"
-  ),
-  strip.placement = "outside",
-  strip.text.y = element_text(
-    face = "bold", hjust = 0.5, vjust = 0.5
-  ),
-  strip.background = element_rect(
-    fill = NA, color = "black", size = 1.5
-  ),
-  panel.spacing.x = unit(0.08, "lines"),
-  panel.spacing.y = unit(0.1, "lines"),
-  panel.border = element_rect(
-    color = "lightgrey", fill = NA, size = 0.5
-  ),
-  text = element_text(size = 16),
-  axis.text.x = element_text(size = 16),
-  axis.text.y = element_text(size = 16)
-)
+# custom_theme <- theme(
+#   panel.grid.major.x = element_line(
+#     size = 0.5, linetype = "dotted",
+#     colour = "lightgrey"
+#   ),
+#   panel.grid.minor.x = element_line(
+#     size = 0.25, linetype = "dotted",
+#     colour = "lightgrey"
+#   ),
+#   strip.placement = "outside",
+#   strip.text.y = element_text(
+#     face = "bold", hjust = 0.5, vjust = 0.5
+#   ),
+#   strip.background = element_rect(
+#     fill = NA, color = "black", size = 1.5
+#   ),
+#   panel.spacing.x = unit(0.08, "lines"),
+#   panel.spacing.y = unit(0.1, "lines"),
+#   panel.border = element_rect(
+#     color = "lightgrey", fill = NA, size = 0.5
+#   ),
+#   text = element_text(size = 16),
+#   axis.text.x = element_text(size = 16),
+#   axis.text.y = element_text(size = 16)
+# )
 
 ranef_sex <- as.data.frame(ordinal::ranef(mop_fit_s_sex))
 names(ranef_sex) <- c("Intercept", "Sex")
@@ -371,51 +364,54 @@ ranef_sex_melt <- ranef_sex %>%
   reshape2::melt()
 
 ranef_ses <- as.data.frame(ordinal::ranef(mop_fit_s_ses))
-names(ranef_ses) <- c("Intercept", "Ses")
+names(ranef_ses) <- c("Intercept", "Parental education")
 ranef_ses_melt <- ranef_ses %>%
   reshape2::melt()
 
 sex_re_plot <- ggplot(ranef_sex_melt, aes(x = value, fill = variable)) +
   geom_density(alpha = 0.6) +
   cowplot::theme_cowplot() +
-  ggsci::scale_fill_aaas(name = "Random effect") +
+  scale_fill_manual(values = MetBrewer::met.brewer("Juarez")[1:2], name = "Random effect") +
   xlab("Random effect") +
   ylab("Density") +
   theme(legend.position = "top") +
   geom_vline(xintercept = 0, colour = "black", linetype = "dashed") +
-  custom_theme +
+  custom_theme(hor = T, text_size = 16) +
   theme(axis.text.y = element_blank())
 
 ses_re_plot <- ggplot(ranef_ses_melt, aes(x = value, fill = variable)) +
   geom_density(alpha = 0.6) +
   cowplot::theme_cowplot() +
-  ggsci::scale_fill_aaas(name = "Random effect") +
+  scale_fill_manual(values = MetBrewer::met.brewer("Juarez")[c(1, 3)], name = "Random effect") +
   xlab("Random effect") +
   ylab("Density") +
   theme(legend.position = "top") +
   geom_vline(xintercept = 0, colour = "black", linetype = "dashed") +
-  custom_theme +
+  custom_theme(hor = T, text_size = 16) +
   theme(axis.text.y = element_blank())
 
 
 effect_plot <- ((sex_re_plot +
-  scale_fill_manual(
-    name = "Random effect",
-    values = ggsci::pal_aaas("default")(8)[7:8]
-  ) +
+  # scale_fill_manual(
+  #   name = "Random effect",
+  #   values = ggsci::pal_aaas("default")(8)[7:8]
+  # ) +
   ggtitle("Pupil Sex")) / (ses_re_plot +
   ggtitle("Pupil Parental Education"))) #+
 
 ## Performance including various school level variables / variations
-perf_full <- readRDS("data/simulations/1_250_mop_full_perf.rds")
+perf_s_rs <- readRDS("data/simulations/1_250_mop_sex_ses_s_perf_full_pupil.rds")
+perf_school <- readRDS("data/simulations/1_250_school_fixed_school_vars.rds")
+perf_school_full <- readRDS("data/simulations/1_250_full_pupil_op_mop.rds")
 
+perf_full <- readRDS("repo/data/simulations/1_250_mop_full_perf.rds")
 perf_full_s <- delist_perf(
-  readRDS("data/simulations/1_250_mop_full_perf_complete.rds"),
+  readRDS("repo/data/simulations/1_250_mop_full_perf_complete.rds"),
   col_names = c("perf_full_re")
 )
 
 perf_lm <- rbind(
-  readRDS("data/simulations/1_250_lm_lme_op_mop_perf.rds")
+  readRDS("repo/data/simulations/1_250_lm_lme_op_mop_perf.rds")
 )
 
 perf_df <- delist_perf(perf_school, col_names = c("den", "ste", "sw", "all"))
@@ -424,19 +420,20 @@ perf_lm <- delist_perf(perf_lm, col_names = c(
   "lme_ses", "op_g", "op_gender", "op_ses", "mop_g",
   "mop_gender", "mop_ses"
 ))
+
 perf_school_full <- delist_perf(perf_school_full,
   col_names = c("op_full", "mop_full")
 )
+
 perf_full_df <- delist_perf(perf_full, col_names = c("g", "sex", "ses"))
 
 results_df <- data.frame(
   op_grades = perf_lm$op_g, op_full = perf_school_full$op_full,
-  perf_df, ri_g = perf_school_full$mop_full,
+  perf_df, ri_g = perf_school_full$mop_full, perf_s_rs,
+  perf_full_re = perf_full_s$perf_full_re
+)
+melt_df <- results_df %>%
   reshape2::melt()
-
-means <- melt_df %>%
-  group_by(variable) %>%
-  summarise(mean = mean(value))
 
 desc_df <- melt_df %>%
   group_by(variable) %>%
@@ -455,9 +452,9 @@ desc_df <- melt_df %>%
       )
     ),
     spec = ifelse(grepl("ste", variable), "Incl. Urbanity",
-      ifelse(grepl("den", variable), "Incl. Denomination",
-        ifelse(grepl("sw", variable), "Incl. School-level\nParental education",
-          ifelse(grepl("all", variable), "Incl. All School Vars",
+      ifelse(grepl("den", variable), "Incl. denomination",
+        ifelse(grepl("sw", variable), "Incl. school-level\ndisadvantage",
+          ifelse(grepl("all", variable), "Incl. all school vars",
             ifelse(grepl("ri_g", variable), "Controls +\nintercepts",
               ifelse(grepl("s_grades", variable),
                 "Controls + \nintercepts & grades",
@@ -503,39 +500,21 @@ perf_plot <- ggplot(
   coord_flip(ylim = c(0.625, 0.7)) +
   facet_grid(type ~ ., scales = "free", space = "free", switch = "y") +
   cowplot::theme_cowplot() +
-  scale_fill_manual(values = pal_aaas()(7)[5:7], name = "Model type") +
+  scale_fill_manual(values = MetBrewer::met.brewer("Juarez"), name = "Model type") +
   geom_hline(yintercept = 0, linetype = 2, color = "darkgrey") +
-  theme(
-    panel.grid.major.x = element_line(
-      size = 0.5, linetype = "dotted",
-      colour = "lightgrey"
-    ),
-    panel.grid.minor.x = element_line(
-      size = 0.25, linetype = "dotted",
-      colour = "lightgrey"
-    ),
-    strip.placement = "outside",
-    strip.text.y = element_text(face = "bold", hjust = 0.5, vjust = 0.5),
-    strip.background = element_rect(fill = NA, color = "black", size = 1.5),
-    panel.spacing.x = unit(0.08, "lines"),
-    panel.spacing.y = unit(0.1, "lines"),
-    panel.border = element_rect(color = "lightgrey", fill = NA, size = 0.5),
-    legend.position = "top",
-    text = element_text(size = 16),
-    axis.text.x = element_text(size = 16),
-    axis.text.y = element_text(size = 16)
-  ) +
+  custom_theme(text_size = 16, ver = T) +
   xlab("") +
   ylab("Out-of-sample predictive accuracy") +
-  theme(legend.position = "none")
+  theme(legend.position = "none") +
+  scale_y_continuous(labels = scales::percent)
 
 (perf_plot + ggtitle("OOS-predictive performance")) + (effect_plot)
 
 
-ggsave("tex/plots/fig_res_4.pdf", last_plot(), width = 13, height = 8.5)
+ggsave("./tex/plots/fig_res_4.pdf", last_plot(), width = 13, height = 8.5)
 
 ## FIGURE 5: SCHOOL EFFECTS
-results_school <- readRDS("data/simulations/1_250_school.rds")
+results_school <- readRDS("repo/data/simulations/1_250_school.rds")
 full_df <- c()
 
 for (s in 1:length(results_school$V1)) {
@@ -609,12 +588,8 @@ school_plot <- ggplot(plot_df_ordered, aes(
   xlab("Schools") +
   ylab("Diff. predicted mean track level using school vs. population model") +
   geom_hline(yintercept = 0, linetype = "dashed") +
-  theme(
-    text = element_text(size = 16),
-    axis.text.x = element_text(size = 16),
-    axis.text.y = element_text(size = 16)
-  )
+  custom_theme(hor = T, text_size = 16)
 
 school_plot + theme(legend.position = "top") + ggtitle("School variability")
 
-ggsave("tex/plots/fig_res_5.pdf", last_plot(), width = 13, height = 7.5)
+ggsave("./tex/plots/fig_res_5.pdf", last_plot(), width = 13, height = 7.5)
